@@ -16,9 +16,42 @@ pub fn get_flac_files_in_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
 #[cfg(test)]
 mod tests {
     extern crate test_util;
+    extern crate tempfile;
+
+    use std::fs::File;
+    // use std::thread::sleep_ms;
+
+    use self::tempfile::tempdir;
+
+    use super::get_flac_files_in_dir;
 
     #[test]
-    fn get_flac_files_in_dir() {
-        test_util::shared_code();
+    fn test_get_flac_files_in_dir() {
+        let dir = tempdir().unwrap();
+
+        for i in 1..9 {
+            // This format spec creates strings of the form '001', '002', ...
+            let fp = dir.path().join(format!("{:0>3}.flac", i));
+            File::create(fp).unwrap();
+
+            // Create extra files to test exclusion.
+            let fp = dir.path().join(format!("{:0>3}.other", i));
+            File::create(fp).unwrap();
+        }
+
+        let expected = vec![
+            dir.path().join("001.flac"),
+            dir.path().join("002.flac"),
+            dir.path().join("003.flac"),
+            dir.path().join("004.flac"),
+            dir.path().join("005.flac"),
+            dir.path().join("006.flac"),
+            dir.path().join("007.flac"),
+            dir.path().join("008.flac"),
+        ];
+
+        let produced = get_flac_files_in_dir(dir.path());
+
+        assert_eq!(expected, produced);
     }
 }

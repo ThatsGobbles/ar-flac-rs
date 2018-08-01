@@ -5,3 +5,7 @@ authors = ["Mark LeMoine <thatsgobbles@gmail.com>"]
 
 [dependencies]
 clap = "2.32.0"
+glob = "0.2.11"
+
+[dev-dependencies]
+test_util = { path = "test_util" }

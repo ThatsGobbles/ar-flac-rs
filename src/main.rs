@@ -1,4 +1,7 @@
 extern crate clap;
+extern crate glob;
+
+mod discovery;
 
 use clap::{Arg, App};
 

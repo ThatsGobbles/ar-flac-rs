@@ -5,12 +5,6 @@ use metaflac::block::{Block, BlockType};
 
 const SAMPLES_PER_FRAME: u64 = 588;
 
-#[derive(Clone, Copy)]
-pub struct FrameInfo {
-    length: u64,
-    offset: u64,
-}
-
 pub fn get_track_num_frames<P: AsRef<Path>>(flac_path: P) -> u64 {
     let flac_tag = Tag::read_from_path(flac_path).unwrap();
 
@@ -22,7 +16,7 @@ pub fn get_track_num_frames<P: AsRef<Path>>(flac_path: P) -> u64 {
                 let num_samples: u64 = stream_info_block.total_samples;
 
                 let num_frames = (num_samples / SAMPLES_PER_FRAME)
-                            + (if num_samples % SAMPLES_PER_FRAME == 0 {0} else {1});
+                               + (if num_samples % SAMPLES_PER_FRAME == 0 {0} else {1});
 
                 num_frames
             }

@@ -2,38 +2,49 @@ use std::path::Path;
 
 use metaflac::Tag;
 use metaflac::block::{Block, BlockType};
+use failure::Error;
 
 const SAMPLES_PER_FRAME: u64 = 588;
 
-pub fn get_track_num_frames<P: AsRef<Path>>(flac_path: P) -> u64 {
-    let flac_tag = Tag::read_from_path(flac_path).unwrap();
+pub fn get_num_frames<P: AsRef<Path>>(flac_path: P) -> Result<u64, Error> {
+    let flac_tag = Tag::read_from_path(flac_path)?;
 
     let info_blocks = flac_tag.get_blocks(BlockType::StreamInfo);
 
-    if let Some(info_block) = info_blocks.first() {
-        match info_block {
-            Block::StreamInfo(ref stream_info_block) => {
-                let num_samples: u64 = stream_info_block.total_samples;
+    if let Some(Block::StreamInfo(stream_info_block)) = info_blocks.first() {
+        let num_samples: u64 = stream_info_block.total_samples;
 
-                let num_frames = (num_samples / SAMPLES_PER_FRAME)
-                               + (if num_samples % SAMPLES_PER_FRAME == 0 {0} else {1});
+        let num_frames = (num_samples / SAMPLES_PER_FRAME)
+                        + (if num_samples % SAMPLES_PER_FRAME == 0 {0} else {1});
 
-                num_frames
-            }
-            _ => 0,
-        }
+        Ok(num_frames)
     }
-    else {0}
+    else {
+        bail!("no stream info block found");
+    }
+}
+
+pub fn get_frame_offsets<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<Vec<u64>, Error> {
+    let mut curr_frame_offset = 0u64;
+    let mut frame_offsets: Vec<u64> = vec![];
+
+    for flac_path in flac_paths {
+        let num_frames = get_num_frames(flac_path)?;
+        curr_frame_offset += num_frames;
+        frame_offsets.push(curr_frame_offset)
+    }
+
+    Ok(frame_offsets)
 }
 
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
 
-    use super::get_track_num_frames;
+    use super::get_num_frames;
 
     #[test]
-    fn test_get_track_num_frames() {
+    fn test_get_num_frames() {
         // Current working dir is crate root, same dir Cargo.toml is in.
         let flac_dir = PathBuf::from("test_util").join("input").join("flac");
 
@@ -53,7 +64,7 @@ mod tests {
         ];
 
         for (input, expected) in inputs_and_expected {
-            let produced = get_track_num_frames(input);
+            let produced = get_num_frames(input).unwrap();
             assert_eq!(expected, produced);
         }
     }

@@ -1,6 +1,7 @@
 extern crate clap;
 extern crate glob;
 extern crate metaflac;
+#[macro_use] extern crate failure;
 
 mod discovery;
 mod offset;

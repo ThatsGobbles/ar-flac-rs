@@ -8,6 +8,13 @@ use failure::Error;
 
 const SAMPLES_PER_FRAME: u64 = 588;
 
+#[derive(Clone, Copy)]
+pub struct DiscInfo {
+    id_1: u32,
+    id_2: u32,
+    cddb_id: u32,
+}
+
 pub fn get_num_frames<P: AsRef<Path>>(flac_path: P) -> Result<u64, Error> {
     let flac_tag = Tag::read_from_path(flac_path)?;
 
@@ -37,6 +44,10 @@ pub fn get_frame_offsets<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths:
     }
 
     Ok(frame_offsets)
+}
+
+pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<DiscInfo, Error> {
+    Ok(DiscInfo { id_1: 0, id_2: 0, cddb_id: 0, })
 }
 
 #[cfg(test)]

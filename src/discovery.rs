@@ -1,4 +1,4 @@
-// Finds, filters, and sorts file paths in a directory to get the working set of FLAC files to use.
+//! Finds, filters, and sorts file paths in a directory to get the working set of FLAC files to use.
 use std::path::{Path, PathBuf};
 
 use glob::glob;

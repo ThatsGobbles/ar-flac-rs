@@ -1,3 +1,5 @@
+//! Handles calculating frame offset and disc ids from music files.
+
 use std::path::Path;
 
 use metaflac::Tag;
@@ -42,6 +44,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::get_num_frames;
+    use super::get_frame_offsets;
 
     #[test]
     fn test_get_num_frames() {
@@ -65,6 +68,85 @@ mod tests {
 
         for (input, expected) in inputs_and_expected {
             let produced = get_num_frames(input).unwrap();
+            assert_eq!(expected, produced);
+        }
+    }
+
+    #[test]
+    fn test_get_frame_offsets() {
+        // Current working dir is crate root, same dir Cargo.toml is in.
+        let flac_dir = PathBuf::from("test_util").join("input").join("flac");
+
+        let inputs_and_expected = vec![
+            (vec![flac_dir.join("01.flac")], vec![16435u64]),
+            (
+                vec![
+                    flac_dir.join("01.flac"),
+                    flac_dir.join("02.flac"),
+                ],
+                vec![
+                    16435,
+                    16435 + 22960,
+                ],
+            ),
+            (
+                vec![
+                    flac_dir.join("01.flac"),
+                    flac_dir.join("02.flac"),
+                    flac_dir.join("03.flac"),
+                    flac_dir.join("04.flac"),
+                    flac_dir.join("05.flac"),
+                    flac_dir.join("06.flac"),
+                ],
+                vec![
+                    16435,
+                    16435 + 22960,
+                    16435 + 22960 + 19174,
+                    16435 + 22960 + 19174 + 19691,
+                    16435 + 22960 + 19174 + 19691 + 13440,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310,
+                ],
+            ),
+            (
+                vec![
+                    flac_dir.join("01.flac"),
+                    flac_dir.join("02.flac"),
+                    flac_dir.join("03.flac"),
+                    flac_dir.join("04.flac"),
+                    flac_dir.join("05.flac"),
+                    flac_dir.join("06.flac"),
+                    flac_dir.join("07.flac"),
+                    flac_dir.join("08.flac"),
+                    flac_dir.join("09.flac"),
+                    flac_dir.join("10.flac"),
+                    flac_dir.join("11.flac"),
+                    flac_dir.join("12.flac"),
+                ],
+                vec![
+                    16435,
+                    16435 + 22960,
+                    16435 + 22960 + 19174,
+                    16435 + 22960 + 19174 + 19691,
+                    16435 + 22960 + 19174 + 19691 + 13440,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485 + 18685,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485 + 18685 + 16735,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485 + 18685 + 16735 + 21910,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485 + 18685 + 16735 + 21910 + 21610,
+                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
+                          + 14485 + 18685 + 16735 + 21910 + 21610 + 34135,
+                ],
+            ),
+        ];
+
+        for (input, expected) in inputs_and_expected {
+            let produced = get_frame_offsets(input).unwrap();
             assert_eq!(expected, produced);
         }
     }

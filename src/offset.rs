@@ -6,9 +6,12 @@ use metaflac::Tag;
 use metaflac::block::{Block, BlockType};
 use failure::Error;
 
-const SAMPLES_PER_FRAME: u64 = 588;
+use util::sum_digits;
 
-#[derive(Clone, Copy)]
+const SAMPLES_PER_FRAME: u64 = 588;
+const FRAMES_PER_SECOND: u64 = 75;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DiscInfo {
     id_1: u32,
     id_2: u32,
@@ -50,7 +53,36 @@ pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) 
     let frame_offsets = get_frame_offsets(flac_paths)?;
     let num_tracks = frame_offsets.len();
 
-    Ok(DiscInfo { id_1: 0, id_2: 0, cddb_id: 0, })
+    let mut id_1: u64 = 0;
+    let mut id_2: u64 = 1;
+    let mut cddb_id: u64 = 2;
+
+    for (i, frame_offset) in frame_offsets.iter().enumerate() {
+        id_1 += frame_offset;
+        id_2 += (if *frame_offset > 0 {*frame_offset} else {1u64}) as u64 * (i as u64 + 2);
+
+        // If this is not the last frame offset, adjust the CDDB id.
+        if i < (num_tracks - 1) {
+            cddb_id += sum_digits(frame_offset / FRAMES_PER_SECOND + 2);
+        }
+    }
+
+    // Some additional magic on CDDB id.
+    if let Some(last_frame_offset) = frame_offsets.last() {
+        cddb_id = ((cddb_id % 255) << 24)
+                + ((last_frame_offset / FRAMES_PER_SECOND) << 8)
+                + num_tracks as u64;
+    }
+
+    id_1 &= 0xFFFFFFFF;
+    id_2 &= 0xFFFFFFFF;
+    cddb_id &= 0xFFFFFFFF;
+
+    Ok(DiscInfo {
+        id_1: id_1 as u32,
+        id_2: id_2 as u32,
+        cddb_id: cddb_id as u32,
+    })
 }
 
 #[cfg(test)]
@@ -60,6 +92,8 @@ mod tests {
 
     use super::get_num_frames;
     use super::get_frame_offsets;
+    use super::get_disc_ids;
+    use super::DiscInfo;
 
     const EXPECTED_OFFSETS: &[u64] = &[
         24882,
@@ -144,6 +178,38 @@ mod tests {
 
         for (input, expected) in inputs_and_expected {
             let produced = get_frame_offsets(input).unwrap();
+            assert_eq!(expected, produced);
+        }
+    }
+
+    #[test]
+    fn test_get_disc_ids() {
+        let flac_dir = PathBuf::from("test_util").join("input").join("flac");
+
+        let inputs_and_expected = vec![
+            (
+                vec![
+                    flac_dir.join("01.flac"),
+                    flac_dir.join("02.flac"),
+                    flac_dir.join("03.flac"),
+                    flac_dir.join("04.flac"),
+                    flac_dir.join("05.flac"),
+                    flac_dir.join("06.flac"),
+                    flac_dir.join("07.flac"),
+                    flac_dir.join("08.flac"),
+                    flac_dir.join("09.flac"),
+                    flac_dir.join("10.flac"),
+                ],
+                DiscInfo {
+                    id_1: 1227439,
+                    id_2: 9760253,
+                    cddb_id: 2332774410,
+                },
+            ),
+        ];
+
+        for (input, expected) in inputs_and_expected {
+            let produced = get_disc_ids(input).unwrap();
             assert_eq!(expected, produced);
         }
     }

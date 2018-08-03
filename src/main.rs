@@ -5,6 +5,7 @@ extern crate metaflac;
 
 mod discovery;
 mod offset;
+mod util;
 
 use clap::{Arg, App};
 

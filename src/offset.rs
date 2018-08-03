@@ -47,7 +47,8 @@ pub fn get_frame_offsets<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths:
 }
 
 pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<DiscInfo, Error> {
-    let frame_offsets = get_frame_offsets(flac_paths);
+    let frame_offsets = get_frame_offsets(flac_paths)?;
+    let num_tracks = frame_offsets.len();
 
     Ok(DiscInfo { id_1: 0, id_2: 0, cddb_id: 0, })
 }

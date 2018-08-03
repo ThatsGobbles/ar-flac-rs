@@ -47,15 +47,31 @@ pub fn get_frame_offsets<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths:
 }
 
 pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<DiscInfo, Error> {
+    let frame_offsets = get_frame_offsets(flac_paths);
+
     Ok(DiscInfo { id_1: 0, id_2: 0, cddb_id: 0, })
 }
 
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+    use std::iter::Sum;
 
     use super::get_num_frames;
     use super::get_frame_offsets;
+
+    const EXPECTED_OFFSETS: &[u64] = &[
+        24882,
+        21328,
+        25617,
+        19155,
+        16888,
+        25512,
+        23685,
+        20160,
+        23518,
+        16502,
+    ];
 
     #[test]
     fn test_get_num_frames() {
@@ -63,18 +79,16 @@ mod tests {
         let flac_dir = PathBuf::from("test_util").join("input").join("flac");
 
         let inputs_and_expected = vec![
-            (flac_dir.join("01.flac"), 16435u64),
-            (flac_dir.join("02.flac"), 22960),
-            (flac_dir.join("03.flac"), 19174),
-            (flac_dir.join("04.flac"), 19691),
-            (flac_dir.join("05.flac"), 13440),
-            (flac_dir.join("06.flac"), 18310),
-            (flac_dir.join("07.flac"), 14485),
-            (flac_dir.join("08.flac"), 18685),
-            (flac_dir.join("09.flac"), 16735),
-            (flac_dir.join("10.flac"), 21910),
-            (flac_dir.join("11.flac"), 21610),
-            (flac_dir.join("12.flac"), 34135),
+            (flac_dir.join("01.flac"), EXPECTED_OFFSETS[0]),
+            (flac_dir.join("02.flac"), EXPECTED_OFFSETS[1]),
+            (flac_dir.join("03.flac"), EXPECTED_OFFSETS[2]),
+            (flac_dir.join("04.flac"), EXPECTED_OFFSETS[3]),
+            (flac_dir.join("05.flac"), EXPECTED_OFFSETS[4]),
+            (flac_dir.join("06.flac"), EXPECTED_OFFSETS[5]),
+            (flac_dir.join("07.flac"), EXPECTED_OFFSETS[6]),
+            (flac_dir.join("08.flac"), EXPECTED_OFFSETS[7]),
+            (flac_dir.join("09.flac"), EXPECTED_OFFSETS[8]),
+            (flac_dir.join("10.flac"), EXPECTED_OFFSETS[9]),
         ];
 
         for (input, expected) in inputs_and_expected {
@@ -88,34 +102,15 @@ mod tests {
         // Current working dir is crate root, same dir Cargo.toml is in.
         let flac_dir = PathBuf::from("test_util").join("input").join("flac");
 
-        let inputs_and_expected = vec![
-            (vec![flac_dir.join("01.flac")], vec![16435u64]),
+        let inputs_and_expected: Vec<(_, Vec<u64>)> = vec![
             (
                 vec![
                     flac_dir.join("01.flac"),
                     flac_dir.join("02.flac"),
                 ],
                 vec![
-                    16435,
-                    16435 + 22960,
-                ],
-            ),
-            (
-                vec![
-                    flac_dir.join("01.flac"),
-                    flac_dir.join("02.flac"),
-                    flac_dir.join("03.flac"),
-                    flac_dir.join("04.flac"),
-                    flac_dir.join("05.flac"),
-                    flac_dir.join("06.flac"),
-                ],
-                vec![
-                    16435,
-                    16435 + 22960,
-                    16435 + 22960 + 19174,
-                    16435 + 22960 + 19174 + 19691,
-                    16435 + 22960 + 19174 + 19691 + 13440,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310,
+                    EXPECTED_OFFSETS[..=0].iter().sum(),
+                    EXPECTED_OFFSETS[..=1].iter().sum(),
                 ],
             ),
             (
@@ -130,28 +125,18 @@ mod tests {
                     flac_dir.join("08.flac"),
                     flac_dir.join("09.flac"),
                     flac_dir.join("10.flac"),
-                    flac_dir.join("11.flac"),
-                    flac_dir.join("12.flac"),
                 ],
                 vec![
-                    16435,
-                    16435 + 22960,
-                    16435 + 22960 + 19174,
-                    16435 + 22960 + 19174 + 19691,
-                    16435 + 22960 + 19174 + 19691 + 13440,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485 + 18685,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485 + 18685 + 16735,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485 + 18685 + 16735 + 21910,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485 + 18685 + 16735 + 21910 + 21610,
-                    16435 + 22960 + 19174 + 19691 + 13440 + 18310
-                          + 14485 + 18685 + 16735 + 21910 + 21610 + 34135,
+                    EXPECTED_OFFSETS[..=0].iter().sum(),
+                    EXPECTED_OFFSETS[..=1].iter().sum(),
+                    EXPECTED_OFFSETS[..=2].iter().sum(),
+                    EXPECTED_OFFSETS[..=3].iter().sum(),
+                    EXPECTED_OFFSETS[..=4].iter().sum(),
+                    EXPECTED_OFFSETS[..=5].iter().sum(),
+                    EXPECTED_OFFSETS[..=6].iter().sum(),
+                    EXPECTED_OFFSETS[..=7].iter().sum(),
+                    EXPECTED_OFFSETS[..=8].iter().sum(),
+                    EXPECTED_OFFSETS[..=9].iter().sum(),
                 ],
             ),
         ];

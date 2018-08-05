@@ -8,8 +8,12 @@ use failure::Error;
 
 use util::sum_digits;
 
-const SAMPLES_PER_FRAME: u64 = 588;
+const SAMPLES_PER_SECOND: u64 = 44100;
+const SAMPLES_PER_FRAME: u64 = 588;  // 44100 / 75
 const FRAMES_PER_SECOND: u64 = 75;
+
+pub type FrameLength = u64;
+pub type FrameOffset = u64;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DiscInfo {
@@ -18,7 +22,7 @@ pub struct DiscInfo {
     cddb_id: u32,
 }
 
-pub fn get_num_frames<P: AsRef<Path>>(flac_path: P) -> Result<u64, Error> {
+pub fn get_frame_lengths<P: AsRef<Path>>(flac_path: P) -> Result<u64, Error> {
     let flac_tag = Tag::read_from_path(flac_path)?;
 
     let info_blocks = flac_tag.get_blocks(BlockType::StreamInfo);
@@ -36,18 +40,67 @@ pub fn get_num_frames<P: AsRef<Path>>(flac_path: P) -> Result<u64, Error> {
     }
 }
 
+pub fn calc_frame_offsets<II: IntoIterator<Item = FrameLength>>(frame_lengths: II) -> Vec<FrameOffset> {
+    let mut curr_frame_offset = 0u64;
+    let mut frame_offsets: Vec<FrameOffset> = vec![];
+
+    for frame_length in frame_lengths {
+        curr_frame_offset += frame_length;
+        frame_offsets.push(curr_frame_offset)
+    }
+
+    frame_offsets
+}
+
 pub fn get_frame_offsets<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<Vec<u64>, Error> {
     let mut curr_frame_offset = 0u64;
     let mut frame_offsets: Vec<u64> = vec![];
 
     for flac_path in flac_paths {
-        let num_frames = get_num_frames(flac_path)?;
+        let num_frames = get_frame_lengths(flac_path)?;
         curr_frame_offset += num_frames;
         frame_offsets.push(curr_frame_offset)
     }
 
     Ok(frame_offsets)
 }
+
+// pub fn calc_disc_ids<II: IntoIterator<Item = FrameOffset>>(frame_offsets: II) -> DiscInfo {
+//     let num_tracks = frame_offsets.len();
+
+//     let mut id_1: u64 = 0;
+//     let mut id_2: u64 = 1;
+//     let mut cddb_id: u64 = 2;
+
+//     let mut track_count: u64 = 0;
+
+//     for (track_count, frame_offset) in frame_offsets.iter().enumerate() {
+//         id_1 += frame_offset;
+//         id_2 += (if *frame_offset > 0 {*frame_offset} else {1u64}) as u64 * (i as u64 + 2);
+
+//         // If this is not the last frame offset, adjust the CDDB id.
+//         if i < (num_tracks - 1) {
+//             cddb_id += sum_digits(frame_offset / FRAMES_PER_SECOND + 2);
+//         }
+//     }
+
+//     // Some additional magic on CDDB id.
+//     if let Some(last_frame_offset) = frame_offsets.last() {
+//         cddb_id = ((cddb_id % 255) << 24)
+//                 + ((last_frame_offset / FRAMES_PER_SECOND) << 8)
+//                 + num_tracks as u64;
+//     }
+
+//     id_1 &= 0xFFFFFFFF;
+//     id_2 &= 0xFFFFFFFF;
+//     cddb_id &= 0xFFFFFFFF;
+
+//     DiscInfo {
+//         id_1: id_1 as u32,
+//         id_2: id_2 as u32,
+//         cddb_id: cddb_id as u32,
+//     }
+// }
 
 pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<DiscInfo, Error> {
     let frame_offsets = get_frame_offsets(flac_paths)?;
@@ -88,9 +141,8 @@ pub fn get_disc_ids<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) 
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-    use std::iter::Sum;
 
-    use super::get_num_frames;
+    use super::get_frame_lengths;
     use super::get_frame_offsets;
     use super::get_disc_ids;
     use super::DiscInfo;
@@ -109,7 +161,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_get_num_frames() {
+    fn test_get_frame_lengths() {
         // Current working dir is crate root, same dir Cargo.toml is in.
         let flac_dir = PathBuf::from("test_util").join("input").join("flac");
 
@@ -127,7 +179,7 @@ mod tests {
         ];
 
         for (input, expected) in inputs_and_expected {
-            let produced = get_num_frames(input).unwrap();
+            let produced = get_frame_lengths(input).unwrap();
             assert_eq!(expected, produced);
         }
     }

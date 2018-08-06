@@ -1,3 +1,5 @@
+#![feature(attr_literals)]
+
 extern crate clap;
 extern crate glob;
 extern crate metaflac;

@@ -2,10 +2,12 @@ extern crate clap;
 extern crate glob;
 extern crate metaflac;
 #[macro_use] extern crate failure;
+extern crate reqwest;
 
 mod discovery;
 mod offset;
 mod util;
+mod fetch;
 
 use clap::{Arg, App};
 

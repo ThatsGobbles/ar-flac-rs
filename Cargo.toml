@@ -8,6 +8,7 @@ clap = "2.32.0"
 glob = "0.2.11"
 metaflac = "0.1.8"
 failure = "0.1.2"
+reqwest = "0.8.7"
 
 [dev-dependencies]
 test_util = { path = "test_util" }

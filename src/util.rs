@@ -15,9 +15,25 @@ pub fn sum_digits(n: u64) -> u64 {
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum LookaheadPos {
     First,
-    Last,
     Middle,
+    Last,
     Only,
+}
+
+impl LookaheadPos {
+    pub fn is_start(&self) -> bool {
+        match self {
+            &LookaheadPos::First | &LookaheadPos::Only => true,
+            &LookaheadPos::Middle | &LookaheadPos::Last => false,
+        }
+    }
+
+    pub fn is_end(&self) -> bool {
+        match self {
+            &LookaheadPos::Last | &LookaheadPos::Only => true,
+            &LookaheadPos::Middle | &LookaheadPos::First => false,
+        }
+    }
 }
 
 pub struct Lookahead<I, T> {
@@ -92,7 +108,7 @@ where I: Iterator<Item = T>,
     }
 }
 
-trait LookaheadExt: Iterator {
+pub trait LookaheadExt: Iterator {
     fn lookahead(self) -> Lookahead<Self, <Self as Iterator>::Item>
     where
         Self::Item: Clone,
@@ -130,8 +146,41 @@ mod tests {
     }
 
     #[test]
+    fn test_is_start() {
+        use super::LookaheadPos;
+
+        let inputs_and_expected = vec![
+            (LookaheadPos::First, true),
+            (LookaheadPos::Middle, false),
+            (LookaheadPos::Last, false),
+            (LookaheadPos::Only, true),
+        ];
+
+        for (input, expected) in inputs_and_expected {
+            let produced = input.is_start();
+            assert_eq!(expected, produced);
+        }
+    }
+
+    #[test]
+    fn test_is_end() {
+        use super::LookaheadPos;
+
+        let inputs_and_expected = vec![
+            (LookaheadPos::First, false),
+            (LookaheadPos::Middle, false),
+            (LookaheadPos::Last, true),
+            (LookaheadPos::Only, true),
+        ];
+
+        for (input, expected) in inputs_and_expected {
+            let produced = input.is_end();
+            assert_eq!(expected, produced);
+        }
+    }
+
+    #[test]
     fn test_lookahead() {
-        use super::Lookahead;
         use super::LookaheadExt;
         use super::LookaheadPos;
 

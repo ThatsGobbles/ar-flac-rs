@@ -11,6 +11,7 @@ mod discovery;
 mod offset;
 mod util;
 mod fetch;
+mod crc;
 
 use clap::{Arg, App};
 

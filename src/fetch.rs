@@ -23,10 +23,21 @@ pub fn get_ar_bin(disc_info: &DiscInfo) -> Result<Vec<u8>, failure::Error> {
     let url = create_ar_bin_url(disc_info);
 
     let mut response = reqwest::get(&url)?;
-    let mut buffer: Vec<u8> = vec![];
-    response.copy_to(&mut buffer);
 
-    Ok(buffer)
+    match response.status() {
+        reqwest::StatusCode::Ok => {
+            let mut buffer: Vec<u8> = vec![];
+            response.copy_to(&mut buffer)?;
+
+            Ok(buffer)
+        },
+        reqwest::StatusCode::NotFound => {
+            bail!("disc not present in database");
+        },
+        _ => {
+            bail!("error when fetching bin file");
+        },
+    }
 }
 
 #[cfg(test)]

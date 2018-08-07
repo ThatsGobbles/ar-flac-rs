@@ -77,15 +77,13 @@ mod tests {
         let inputs_and_expected = vec![
             (
                 (load_bytes(raw_dir.join("01.raw")), true, false),
-                0,
+                0xde813995u32,
             ),
         ];
 
         for ((bytes, is_first, is_last), expected) in inputs_and_expected {
             let produced = calc_ar_v1_crc(&bytes, is_first, is_last).unwrap();
-            // assert_eq!(expected, produced);
-
-            println!("{:x}", produced);
+            assert_eq!(expected, produced);
         }
     }
 }

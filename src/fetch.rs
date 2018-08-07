@@ -1,9 +1,19 @@
+use std::io;
+
 use reqwest;
 use failure;
+use byteorder::LittleEndian;
+use byteorder::ReadBytesExt;
 
 use offset::DiscInfo;
 
 const ACCURATERIP_DB_URL: &str = "http://www.accuraterip.com/accuraterip";
+
+pub struct TrackResult {
+    confidence: u8,
+    crc: u32,
+    _unused: u32,
+}
 
 fn create_ar_bin_url(disc_info: &DiscInfo) -> String {
     format!(
@@ -38,6 +48,30 @@ pub fn get_ar_bin(disc_info: &DiscInfo) -> Result<Vec<u8>, failure::Error> {
             bail!("error when fetching bin file");
         },
     }
+}
+
+pub fn unpack_ar_bin(ar_bin_data: Vec<u8>) -> Result<Vec<(DiscInfo, )>, failure::Error> {
+    let expected_end_pos = ar_bin_data.len() as u64;
+    let mut reader = io::Cursor::new(ar_bin_data);
+
+    let results = vec![];
+
+    loop {
+        // Check if we are at the expected end position.
+        if reader.position() >= expected_end_pos {
+            break;
+        }
+
+        // Unpack header/disc info.
+        let num_tracks: u8 = reader.read_u8()?;
+        let id_1: u32 = reader.read_u32::<LittleEndian>()?;
+        let id_2: u32 = reader.read_u32::<LittleEndian>()?;
+        let cddb_id: u32 = reader.read_u32::<LittleEndian>()?;
+
+        // Use number of tracks to determine how many track results to try and unpack.
+    }
+
+    Ok(results)
 }
 
 #[cfg(test)]

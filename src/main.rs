@@ -5,6 +5,7 @@ extern crate glob;
 extern crate metaflac;
 #[macro_use] extern crate failure;
 extern crate reqwest;
+extern crate byteorder;
 
 mod discovery;
 mod offset;

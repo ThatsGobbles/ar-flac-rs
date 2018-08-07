@@ -102,14 +102,7 @@ mod tests {
     use super::unpack_ar_bin;
     use super::TrackResult;
 
-    fn load_bytes<P: AsRef<Path>>(bin_path: P) -> Vec<u8> {
-        let mut f = File::open(bin_path).unwrap();
-        let mut buffer = Vec::new();
-
-        f.read_to_end(&mut buffer).unwrap();
-
-        buffer
-    }
+    use test_util::load_bytes;
 
     #[test]
     fn test_create_ar_bin_url() {

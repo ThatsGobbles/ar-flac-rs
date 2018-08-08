@@ -63,10 +63,7 @@ pub fn calc_ar_v2_crc(track_audio_bytes: &[u8], is_first: bool, is_last: bool) -
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::path::Path;
     use std::path::PathBuf;
-    use std::io::Read;
 
     use super::calc_ar_v1_crc;
     use super::calc_ar_v2_crc;
@@ -103,8 +100,7 @@ mod tests {
 
         for ((bytes, is_first, is_last), expected) in inputs_and_expected {
             let produced = calc_ar_v2_crc(&bytes, is_first, is_last).unwrap();
-            println!("{:x}", produced);
-            // assert_eq!(expected, produced);
+            assert_eq!(expected, produced);
         }
     }
 }

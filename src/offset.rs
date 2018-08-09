@@ -55,7 +55,7 @@ pub fn calc_frame_offsets<II: IntoIterator<Item = FrameLength>>(frame_lengths: I
     frame_offsets
 }
 
-pub fn calc_disc_ids<II: IntoIterator<Item = FrameOffset>>(frame_offsets: II) -> DiscInfo {
+pub fn calc_disc_info<II: IntoIterator<Item = FrameOffset>>(frame_offsets: II) -> DiscInfo {
     let mut id_1: u64 = 0;
     let mut id_2: u64 = 1;
     let mut cddb_id: u64 = 2;
@@ -93,6 +93,14 @@ pub fn calc_disc_ids<II: IntoIterator<Item = FrameOffset>>(frame_offsets: II) ->
     }
 }
 
+pub fn calc_disc_info_for_files<P: AsRef<Path>, II: IntoIterator<Item = P>>(flac_paths: II) -> Result<DiscInfo, Error> {
+    let frame_lengths = flac_paths.into_iter().map(get_frame_lengths).collect::<Result<Vec<_>, _>>()?;
+    let frame_offsets = calc_frame_offsets(frame_lengths);
+    let disc_info = calc_disc_info(frame_offsets);
+
+    Ok(disc_info)
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -101,7 +109,7 @@ mod tests {
     use super::FrameOffset;
     use super::get_frame_lengths;
     use super::calc_frame_offsets;
-    use super::calc_disc_ids;
+    use super::calc_disc_info;
     use super::DiscInfo;
 
     const EXPECTED_LENGTHS: &[FrameLength] = &[
@@ -191,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_calc_disc_ids() {
+    fn test_calc_disc_info() {
         let inputs_and_expected = vec![
             (
                 EXPECTED_OFFSETS.to_vec(),
@@ -205,7 +213,7 @@ mod tests {
         ];
 
         for (input, expected) in inputs_and_expected {
-            let produced = calc_disc_ids(input);
+            let produced = calc_disc_info(input);
             assert_eq!(expected, produced);
         }
     }

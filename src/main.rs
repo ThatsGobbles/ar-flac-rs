@@ -14,6 +14,7 @@ mod offset;
 mod util;
 mod fetch;
 mod crc;
+mod validate;
 
 use clap::{Arg, App};
 

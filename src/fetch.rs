@@ -51,7 +51,7 @@ pub fn get_ar_bin(disc_info: &DiscInfo) -> Result<Vec<u8>, failure::Error> {
     }
 }
 
-pub fn unpack_ar_bin(ar_bin_data: &Vec<u8>) -> Result<Vec<(DiscInfo, Vec<TrackResult>)>, failure::Error> {
+pub fn unpack_ar_bin(ar_bin_data: &[u8]) -> Result<Vec<(DiscInfo, Vec<TrackResult>)>, failure::Error> {
     let expected_end_pos = ar_bin_data.len() as u64;
     let mut reader = io::Cursor::new(ar_bin_data);
 

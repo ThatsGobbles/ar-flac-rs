@@ -71,6 +71,7 @@ mod tests {
     use test_util::load_bytes;
 
     #[test]
+    #[ignore("long test")]
     fn test_calc_ar_v1_crc() {
         let raw_dir = PathBuf::from("test_util").join("input").join("raw_samples");
 
@@ -96,6 +97,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore("long test")]
     fn test_calc_ar_v2_crc() {
         let raw_dir = PathBuf::from("test_util").join("input").join("raw_samples");
 

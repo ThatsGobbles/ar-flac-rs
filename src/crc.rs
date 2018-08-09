@@ -19,7 +19,7 @@ pub fn calc_ar_v1_crc(track_audio_bytes: &[u8], is_first: bool, is_last: bool) -
     let mut ar_crc = 0u32;
     let mut pos_multi = 1u32;
 
-    while reader.position() < track_audio_bytes.len() as u64 {
+    while reader.position() < tail_pos {
         // One audio sample is 4 bytes from the reader.
         let sample: u32 = reader.read_u32::<LittleEndian>()?;
 
@@ -42,7 +42,7 @@ pub fn calc_ar_v2_crc(track_audio_bytes: &[u8], is_first: bool, is_last: bool) -
     let mut ar_crc = 0u32;
     let mut pos_multi = 1u32;
 
-    while reader.position() < track_audio_bytes.len() as u64 {
+    while reader.position() < tail_pos {
         // One audio sample is 4 bytes from the reader.
         let sample: u32 = reader.read_u32::<LittleEndian>()?;
 
@@ -79,6 +79,14 @@ mod tests {
                 (load_bytes(raw_dir.join("01.raw")), true, false),
                 0xde813995u32,
             ),
+            (
+                (load_bytes(raw_dir.join("05.raw")), false, false),
+                0x322B77C7u32,
+            ),
+            (
+                (load_bytes(raw_dir.join("10.raw")), false, true),
+                0xA547A3F4u32,
+            ),
         ];
 
         for ((bytes, is_first, is_last), expected) in inputs_and_expected {
@@ -95,6 +103,14 @@ mod tests {
             (
                 (load_bytes(raw_dir.join("01.raw")), true, false),
                 0xf7d6be16u32,
+            ),
+            (
+                (load_bytes(raw_dir.join("05.raw")), false, false),
+                0x2CC415DAu32,
+            ),
+            (
+                (load_bytes(raw_dir.join("10.raw")), false, true),
+                0x6B47A018u32,
             ),
         ];
 

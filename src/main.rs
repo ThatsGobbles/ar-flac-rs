@@ -7,7 +7,7 @@ extern crate metaflac;
 extern crate reqwest;
 extern crate byteorder;
 
-extern crate test_util;
+#[cfg(test)] extern crate test_util;
 
 mod discovery;
 mod offset;

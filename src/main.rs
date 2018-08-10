@@ -15,6 +15,7 @@ mod util;
 mod fetch;
 mod crc;
 mod validate;
+mod decode;
 
 use clap::{Arg, App};
 

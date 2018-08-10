@@ -57,6 +57,7 @@ pub fn unpack_ar_bin(ar_bin_data: &[u8]) -> Result<Vec<(DiscInfo, Vec<TrackResul
 
     let mut results = vec![];
 
+    // Multiple CRC sets from different pressings of the same album can be in the file.
     while reader.position() < expected_end_pos {
         // Unpack header/disc info.
         let num_tracks: u8 = reader.read_u8()?;

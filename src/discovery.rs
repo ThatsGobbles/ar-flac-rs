@@ -1,16 +1,18 @@
 //! Finds, filters, and sorts file paths in a directory to get the working set of FLAC files to use.
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 
+use failure;
 use glob::glob;
 
-pub fn get_flac_files_in_dir<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
+pub fn get_flac_files_in_dir<P: AsRef<Path>>(dir: P) -> Result<Vec<PathBuf>, failure::Error> {
     let dir = dir.as_ref();
     let pattern = dir.join("*.flac");
 
-    let mut res: Vec<_> = glob(&pattern.to_string_lossy()).unwrap().filter_map(Result::ok).collect();
+    let mut res: Vec<_> = glob(&pattern.to_string_lossy())?.filter_map(Result::ok).collect();
     res.sort();
 
-    res
+    Ok(res)
 }
 
 #[cfg(test)]
@@ -50,7 +52,7 @@ mod tests {
             dir.path().join("008.flac"),
         ];
 
-        let produced = get_flac_files_in_dir(dir.path());
+        let produced = get_flac_files_in_dir(dir.path()).unwrap();
 
         assert_eq!(expected, produced);
     }

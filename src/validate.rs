@@ -8,7 +8,7 @@ use fetch::get_ar_bin;
 use fetch::unpack_ar_bin;
 
 pub fn validate<P: AsRef<Path>>(flac_dir: P) -> Result<(), failure::Error> {
-    let flac_files = get_flac_files_in_dir(flac_dir);
+    let flac_files = get_flac_files_in_dir(flac_dir)?;
 
     let disc_info = calc_disc_info_for_files(&flac_files)?;
 

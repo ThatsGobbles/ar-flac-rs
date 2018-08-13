@@ -6,6 +6,7 @@ extern crate metaflac;
 #[macro_use] extern crate failure;
 extern crate reqwest;
 extern crate byteorder;
+extern crate rayon;
 
 #[cfg(test)] extern crate test_util;
 
